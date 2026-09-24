@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'restcountries/**'
-      - '.github/workflows/restcountries.yml'
 
 jobs:
   release:
@@ -19,7 +16,7 @@ jobs:
         uses: redhat-actions/buildah-build@v3
         with:
           image: restcountries
-          tags: staging ${{ github.sha }}
+          tags: prod ${{ github.sha }}
           context: ./restcountries
           containerfiles: |
             ./restcountries/Dockerfile

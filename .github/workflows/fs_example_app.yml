@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'fs_example_app/**'
-      - '.github/workflows/fs_example_app.yml'
 
 jobs:
   release:
@@ -19,7 +16,7 @@ jobs:
         uses: redhat-actions/buildah-build@v3
         with:
           image: fs-exampleapp
-          tags: staging ${{ github.sha }}
+          tags: prod ${{ github.sha }}
           context: ./fs_example_app
           containerfiles: |
             ./fs_example_app/Dockerfile

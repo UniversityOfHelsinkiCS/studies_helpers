@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'nhlstats/**'
-      - '.github/workflows/nhlstats.yml'
 
 jobs:
   release:
@@ -19,7 +16,7 @@ jobs:
         uses: redhat-actions/buildah-build@v3
         with:
           image: nhlstats
-          tags: staging ${{ github.sha }}
+          tags: prod ${{ github.sha }}
           context: ./nhlstats
           containerfiles: |
             ./nhlstats/Dockerfile
