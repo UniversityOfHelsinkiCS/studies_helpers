@@ -1,0 +1,34 @@
+name: Release fs-exampleapp
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'fs_example_app/**'
+      - '.github/workflows/fs_example_app.yml'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build image
+        id: build-image
+        uses: redhat-actions/buildah-build@v3
+        with:
+          image: fs-exampleapp
+          tags: staging ${{ github.sha }}
+          context: ./fs_example_app
+          containerfiles: |
+            ./fs_example_app/Dockerfile
+
+      - name: Push to registry
+        uses: redhat-actions/push-to-registry@v3
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: registry.version.helsinki.fi/toska/openshift/kontit/
+          username: kontit
+          password: ${{ secrets.VERSION_PUSH_SECRET }}
