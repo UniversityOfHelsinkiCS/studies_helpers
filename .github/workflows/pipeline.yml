@@ -17,8 +17,9 @@ jobs:
         with:
           image: restcountries
           tags: staging ${{ github.sha }}
+          context: ./restcountries
           containerfiles: |
-            ./Dockerfile
+            ./restcountries/Dockerfile
 
       - name: Push to registry
         uses: redhat-actions/push-to-registry@v3
