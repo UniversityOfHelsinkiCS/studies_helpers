@@ -8,7 +8,7 @@ RUN npm ci --omit=dev
 
 COPY . .
 
-EXPOSE 3001
+EXPOSE 8000
 
 USER node
 

@@ -1,4 +1,4 @@
-name: Release restcountries app
+name: Release coursestats-mock
 
 on:
   push:
@@ -16,11 +16,11 @@ jobs:
         id: build-image
         uses: redhat-actions/buildah-build@v3
         with:
-          image: restcountries
+          image: coursestats-mock
           tags: prod ${{ github.sha }}
-          context: ./restcountries
+          context: ./coursestats-mock
           containerfiles: |
-            ./restcountries/Dockerfile
+            ./coursestats-mock/Dockerfile
 
       - name: Push to registry
         uses: redhat-actions/push-to-registry@v3
