@@ -12,4 +12,4 @@ EXPOSE 8000
 
 USER node
 
-CMD ["node", "index.js"]
+CMD ["node", "src/index.js"]
