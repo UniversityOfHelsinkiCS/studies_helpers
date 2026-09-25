@@ -12,4 +12,4 @@ EXPOSE 3001
 
 USER node
 
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
