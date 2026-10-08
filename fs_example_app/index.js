@@ -1,6 +1,7 @@
 const express = require('express')
 const path = require('path')
 const boyParser = require('body-parser')
+const { isOffensive } = require('./moderation')
 
 const PORT = process.env.PORT || 5000
 const MAX_NOTES = 100;
@@ -27,6 +28,10 @@ const notes = [
 
 const isValidNote = note => {
   return typeof note === 'object' && typeof note.content === 'string' && !isNaN(new Date(note.date).getTime())
+}
+
+const clearNotes = () => {
+  notes.splice(0, notes.length)
 }
 
 const createNote = note => {
@@ -60,6 +65,9 @@ const notes_page = `
       <input type="text" name="note"><br>
       <input type="submit" value="Save">
     </form>
+    <form action='${PATH_PREFIX}/clear_notes' method='POST'>
+      <input type="submit" value="Clear notes">
+    </form>
   </div>
 </body>
 </html>
@@ -81,6 +89,7 @@ const notes_spa = `
       <input type="text" name="note"><br>
       <input type="submit" value="Save">
     </form>
+    <button id='clear_notes'>Clear notes</button>
   </div>
 </body>
 </html>
@@ -114,7 +123,7 @@ router.get('/', (req, res) => {
 })
 
 router.get('/reset', (req, res) => {
-  notes.splice(0, notes.length)
+  clearNotes()
   res.status(201).send({ message: 'notes reset' })
 })
 
@@ -135,13 +144,17 @@ router.post('/new_note_spa', (req, res) => {
     return res.send('invalid note').status(400)
   }
 
+  if (isOffensive(req.body.content)) {
+    return res.status(400).send({ error: 'offensive note' })
+  }
+
   createNote(formatNote(req.body))
 
   res.status(201).send({ message: 'note created' })
 })
 
 router.post('/new_note', (req, res) => {
-  if (typeof req.body.note === 'string') {
+  if (typeof req.body.note === 'string' && !isOffensive(req.body.note)) {
     createNote(formatNote({
       content: req.body.note,
       date: new Date()
@@ -149,6 +162,16 @@ router.post('/new_note', (req, res) => {
   }
   
   res.redirect(`${PATH_PREFIX}/notes`)
+})
+
+router.post('/clear_notes', (req, res) => {
+  clearNotes()
+  res.redirect(`${PATH_PREFIX}/notes`)
+})
+
+router.post('/clear_notes_spa', (req, res) => {
+  clearNotes()
+  res.status(200).send({ message: 'notes cleared' })
 })
 
 if (process.env.NODE_ENV === 'development') {

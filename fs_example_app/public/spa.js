@@ -35,6 +35,10 @@ var sendToServer = function (note) {
   xhttpForPost.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 201) {
       console.log(this.responseText)
+    } else if (this.readyState == 4 && this.status == 400) {
+      notes = notes.filter(function (n) { return n !== note })
+      redrawNotes()
+      alert('Note was rejected as offensive')
     }
   }
 
@@ -57,5 +61,19 @@ window.onload = function (e) {
     e.target.elements[0].value = ""
     redrawNotes()
     sendToServer(note)
+  }
+
+  var clearButton = document.getElementById("clear_notes")
+  clearButton.onclick = function () {
+    var xhttpForClear = new XMLHttpRequest()
+    xhttpForClear.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        notes = []
+        redrawNotes()
+      }
+    }
+
+    xhttpForClear.open("POST", '/exampleapp/clear_notes_spa', true)
+    xhttpForClear.send()
   }
 }
