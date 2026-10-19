@@ -69,13 +69,15 @@ const getSeason = async (season) => {
 }
 
 const do_the_acual_shit = async () => {
-  const season = "20252026";
+  const season = process.argv[2] || "20262027";
   const fileName = `./data-${season}.json`;
   const players = await getSeason(season)
   fs.writeFileSync(fileName, JSON.stringify(players));
 }
 
-//do_the_acual_shit();
+if (require.main === module) {
+  do_the_acual_shit();
+}
 
 module.exports = {
   getSeason

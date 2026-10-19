@@ -35,6 +35,7 @@ const stats = {
   "2023-24": shuffled([...require("./data-20232024.json")]),
   "2024-25": shuffled([...require("./data-20242025.json")]),
   "2025-26": shuffled([...require("./data-20252026.json")]),
+  "2026-27": shuffled([...require("./data-20262027.json")]),
 };
 
 app.get("/:year/players.txt", (req, res) => {
@@ -78,7 +79,7 @@ app.get("/:year/players", (req, res) => {
 
 app.get("/update", async (req, res) => {
   console.log("warmup")
-  currentPlayers = await getSeason.getSeason("20252026")
+  currentPlayers = await getSeason.getSeason("20262027")
   console.log("warmed!")
 
   const resp = `<div>updated the current year</div>`
@@ -87,7 +88,7 @@ app.get("/update", async (req, res) => {
 
 const setup = async () => {
   console.log("warmup")
-  currentPlayers = await getSeason.getSeason("20252026")
+  currentPlayers = await getSeason.getSeason("20262027")
   console.log("warmed!")
 }
 
