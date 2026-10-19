@@ -68,6 +68,45 @@ const getSeason = async (season) => {
   return players
 }
 
+const fetchAllPages = async (report, season) => {
+  const rows = []
+  let start = 0
+  while (true) {
+    const url = `https://api.nhle.com/stats/rest/en/skater/${report}?limit=100&start=${start}&sort=playerId&cayenneExp=seasonId=${season}`
+    let data
+    for (let attempt = 1; ; attempt++) {
+      try {
+        ({ data } = await axios.get(url))
+        break
+      } catch (error) {
+        if (attempt >= 5) throw error
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+      }
+    }
+    rows.push(...data.data)
+    start += 100
+    if (data.data.length === 0 || start >= data.total) break
+  }
+  return rows
+}
+
+// lightweight version for the running server: ~15 requests instead of one per player
+const getSeasonSummary = async (season) => {
+  const summary = await fetchAllPages('summary', season)
+  const bios = await fetchAllPages('bios', season)
+  const countries = new Map(bios.map(b => [b.playerId, b.birthCountryCode]))
+
+  return summary.map(p => ({
+    name: p.skaterFullName,
+    nationality: countries.get(p.playerId),
+    assists: p.assists,
+    goals: p.goals,
+    team: p.teamAbbrevs.split(',').join(', '),
+    games: p.gamesPlayed,
+    id: p.playerId,
+  }))
+}
+
 const do_the_acual_shit = async () => {
   const season = process.argv[2] || "20262027";
   const fileName = `./data-${season}.json`;
@@ -80,5 +119,6 @@ if (require.main === module) {
 }
 
 module.exports = {
-  getSeason
+  getSeason,
+  getSeasonSummary
 } 

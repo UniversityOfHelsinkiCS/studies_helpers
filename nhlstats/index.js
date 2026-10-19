@@ -1,8 +1,11 @@
 const express = require("express");
 const app = express();
 
-const getSeason = require('./scrape')
-let currentPlayers = null
+const { getSeasonSummary } = require('./scrape')
+
+const CURRENT_SEASON = "2026-27"
+const CURRENT_SEASON_ID = "20262027"
+const UPDATE_HOUR = 8 // Helsinki time
 
 function dups(players) {
   const seen = new Set();
@@ -38,9 +41,40 @@ const stats = {
   "2026-27": shuffled([...require("./data-20262027.json")]),
 };
 
+// the stats API gives official names (e.g. "Anthony-John (AJ) Greer"), prefer the ones already in the bundled file
+const knownNames = new Map(stats[CURRENT_SEASON].map(p => [p.id, p.name]))
+
+const helsinkiDate = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Helsinki" }).format(new Date())
+const helsinkiHour = () => Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Helsinki", hour: "numeric", hourCycle: "h23" }).format(new Date()))
+
+let lastUpdated = null
+let updating = false
+
+const updateCurrentSeason = async () => {
+  if (updating) return
+  updating = true
+  try {
+    const players = await getSeasonSummary(CURRENT_SEASON_ID)
+    if (players.length > 0) {
+      stats[CURRENT_SEASON] = shuffled(players.map(p => ({ ...p, name: knownNames.get(p.id) || p.name })))
+      lastUpdated = helsinkiDate()
+      console.log(`updated ${CURRENT_SEASON}: ${players.length} players`)
+    }
+  } catch (error) {
+    console.log(`updating ${CURRENT_SEASON} failed, keeping old data:`, error.message)
+  } finally {
+    updating = false
+  }
+}
+
+// check every 10 minutes, update once a day after UPDATE_HOUR
+setInterval(() => {
+  if (lastUpdated !== helsinkiDate() && helsinkiHour() >= UPDATE_HOUR) {
+    updateCurrentSeason()
+  }
+}, 10 * 60 * 1000)
+
 app.get("/:year/players.txt", (req, res) => {
-  const season = req.params.year
-  //const players = season === "20252026" && currentPlayers ? currentPlayers : stats[req.params.year];
   const players = stats[req.params.year];
 
   if (!players) {
@@ -78,23 +112,13 @@ app.get("/:year/players", (req, res) => {
 });
 
 app.get("/update", async (req, res) => {
-  console.log("warmup")
-  currentPlayers = await getSeason.getSeason("20262027")
-  console.log("warmed!")
-
-  const resp = `<div>updated the current year</div>`
-  res.send(resp);
+  await updateCurrentSeason()
+  res.send(`<div>updated the current year</div>`);
 });
-
-const setup = async () => {
-  console.log("warmup")
-  currentPlayers = await getSeason.getSeason("20262027")
-  console.log("warmed!")
-}
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-//setup()
+updateCurrentSeason()
