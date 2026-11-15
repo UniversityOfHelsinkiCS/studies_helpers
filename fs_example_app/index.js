@@ -11,7 +11,7 @@ const app = express()
 
 app.use(boyParser())
 
-const notes = [
+const defaultNotes = () => [
   {
     content: 'HTML is easy',
     date: new Date('2019-05-23T17:30:31.098Z'),
@@ -26,12 +26,14 @@ const notes = [
   },
 ]
 
+const notes = defaultNotes()
+
 const isValidNote = note => {
   return typeof note === 'object' && typeof note.content === 'string' && !isNaN(new Date(note.date).getTime())
 }
 
 const clearNotes = () => {
-  notes.splice(0, notes.length)
+  notes.splice(0, notes.length, ...defaultNotes())
 }
 
 const createNote = note => {
